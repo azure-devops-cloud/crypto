@@ -33,15 +33,20 @@ def fetch_crypto_data_dynamic(symbol, interval, days_back):
         if len(batch_data) < limit:
             break
 
-    # Create DataFrame
+    # Create DataFrame and exclude CloseTime and Ignore columns
     df = pd.DataFrame(all_data, columns=[
         'OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume',
         'CloseTime', 'QuoteVolume', 'Trades', 'TakerBase', 'TakerQuote', 'Ignore'
     ])
+    
+    # Remove 'CloseTime' and 'Ignore' columns
+    df = df.drop(columns=['CloseTime', 'Ignore'])
+    
+    # Convert numerical columns to float for better representation
     df['OpenTime'] = pd.to_datetime(df['OpenTime'], unit='ms')
-    df['CloseTime'] = pd.to_datetime(df['CloseTime'], unit='ms')
-    df = df[['OpenTime', 'Open', 'High', 'Low', 'Close', 'Volume']]
-    df[['Open', 'High', 'Low', 'Close', 'Volume']] = df[['Open', 'High', 'Low', 'Close', 'Volume']].astype(float)
+    numerical_columns = ['Open', 'High', 'Low', 'Close', 'Volume', 'QuoteVolume', 'TakerBase', 'TakerQuote']
+    df[numerical_columns] = df[numerical_columns].astype(float)
+    
     return df
 
 # User Inputs
@@ -56,7 +61,7 @@ try:
     print(crypto_data.head())
 
     # Export to CSV
-    output_file = f"{symbol}_{interval}_data.csv"
+    output_file = f"{symbol}_{interval}_data_no_closetime_ignore.csv"
     crypto_data.to_csv(output_file, index=False)
     print(f"Data successfully exported to {output_file}.")
 
